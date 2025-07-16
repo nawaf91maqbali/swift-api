@@ -77,8 +77,8 @@ public class User
 
 3. Register and enable SwiftApi in your `Program.cs`:
 ```csharp
-builder.Services.AddSwiftApi(); // Register services
-app.MapSwiftApi();              // Map endpoints
+builder.Services.AddSwiftAPI(); // Register services
+app.MapSwiftAPI();              // Map endpoints
 ```
 
 4. Start your app and explore the auto-generated Swagger UI at `/swagger`.
