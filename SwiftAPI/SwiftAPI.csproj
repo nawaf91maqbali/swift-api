@@ -2,13 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <!-- Compiler Settings -->
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+
+    <!-- NuGet Package Metadata -->
     <PackageId>SwiftApi</PackageId>
-    <Version>1.0.0</Version>
+    <Version>8.0.0</Version>
     <Authors>Nawaf AL-Maqbali</Authors>
     <Company>Rihal</Company>
+    <Description>SwiftApi: Turn service interfaces into fully functional API endpoints without writing controllers.</Description>
+    <PackageTags>dotnet;api;minimal;controllerless;swagger;webapi;aspnetcore</PackageTags>
+    <RepositoryUrl>https://github.com/nawaf91maqbali/swift-api.git</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
