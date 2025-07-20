@@ -7,7 +7,7 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Helper class for handling errors in API endpoints.
     /// </summary>
-    static class ErrorHelper
+    internal static class ErrorHelper
     {
         /// <summary>
         /// Handles exceptions and returns appropriate HTTP responses with ProblemDetails.
@@ -15,7 +15,7 @@ namespace SwiftAPI.Helpers
         /// <param name="exception"></param>
         /// <param name="res"></param>
         /// <returns></returns>
-        public static ProblemDetails HandleError(this Exception exception, HttpResponse res)
+        internal static ProblemDetails HandleError(this Exception exception, HttpResponse res)
         {
             switch (exception)
             {

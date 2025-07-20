@@ -7,7 +7,7 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Helper class for resolving OpenAPI operations based on method parameters and attributes.
     /// </summary>
-    static class OperationHelper
+    internal static class OperationHelper
     {
         /// <summary>
         /// Resolves OpenAPI operation details from a method, including parameters and tags.
@@ -16,7 +16,7 @@ namespace SwiftAPI.Helpers
         /// <param name="tagName"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public static OpenApiOperation ResolveOperations(this OpenApiOperation o, string tagName, MethodInfo method)
+        internal static OpenApiOperation ResolveOperations(this OpenApiOperation o, string tagName, MethodInfo method)
         {
             o.OperationId = $"{tagName}_{method.Name}".ToLower();
             o.Tags = new List<OpenApiTag> { new OpenApiTag { Name = tagName.ToUpper() } };

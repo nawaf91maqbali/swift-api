@@ -56,7 +56,13 @@
     [AttributeUsage(AttributeTargets.Method)]
     public class GetActionAttribute : ActionAttribute
     {
-        public GetActionAttribute(string name = null) : base(name, ActionType.Get) { }
+        public bool EnableCache { get; }
+        public int CacheDuration { get; }
+        public GetActionAttribute(string name = null, bool enableCache = false, int cacheDuration = 1) 
+            : base(name, ActionType.Get) {
+            EnableCache = enableCache;
+            CacheDuration = cacheDuration;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
@@ -78,14 +84,12 @@
     }
     #endregion
 
-    [AttributeUsage(AttributeTargets.Interface)]
+    [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
     public class SecureEndpointAttribute : Attribute
     {
-        public string? Policy { get; }
         public string? Role { get; }
-        public SecureEndpointAttribute(string? policy = null, string? role = null)
+        public SecureEndpointAttribute(string? role = null)
         {
-            Policy = policy;
             Role = role;
         }
     }
@@ -94,11 +98,9 @@
     public class SecureActionAttribute : Attribute
     {
         public string? Policy { get; }
-        public string? Role { get; }
-        public SecureActionAttribute(string? policy = null, string? role = null)
+        public SecureActionAttribute(string? policy = null)
         {
             Policy = policy;
-            Role = role;
         }
     }
 
@@ -117,6 +119,21 @@
     {
         public SchemaModelAttribute()
         {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class)]
+    public class ModelEndPointAttribute : Attribute
+    {
+        public string? Name { get; }
+        public Type Interface { get; }
+        public Type Implementation { get; }
+
+        public ModelEndPointAttribute(Type @interface, Type @implementation, string? name = null)
+        {
+            Interface = @interface;
+            Implementation = @implementation;
+            Name = name;
         }
     }
 }

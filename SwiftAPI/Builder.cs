@@ -18,6 +18,7 @@ namespace SwiftAPI
         /// <param name="services"></param>
         public static void AddSwiftAPI(this IServiceCollection services, Action<SwiftApiOptions>? configureOptions = null)
         {
+            services.AddResponseCaching();
             services.ServiceRegistration();
             services.AddEndpointsApiExplorer();
 
@@ -39,41 +40,8 @@ namespace SwiftAPI
         /// <param name="app"></param>
         public static void MapSwiftAPI(this WebApplication app)
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-            var endPoints = assemblies.SelectMany(a => a.GetTypes())
-                .Where(t => t.IsInterface && t.GetCustomAttributes<EndPointAttribute>().Any());
-
-            foreach (var endPoint in endPoints)
-            {
-                var apiName = endPoint.GetCustomAttribute<EndPointAttribute>()?.Name ?? endPoint.Name.ToSwiftApiName();
-                var actions = endPoint.GetMethods();
-
-                foreach (var action in actions)
-                {
-                    var actionName = action.GetCustomAttribute<ActionAttribute>()?.Name ?? action.Name.ToSwiftApiName();
-                    var actionType = action.GetCustomAttribute<ActionAttribute>()?.Action ?? ActionType.Get;
-
-                    var route = $"api/{apiName}/{actionName}";
-                    route = route.BuildRoute(action.GetParameters().ToList());
-
-                    switch (actionType)
-                    {
-                        case ActionType.Post:
-                            app.MapPostApi(route, endPoint, action, apiName);
-                            break;
-                        case ActionType.Put:
-                            app.MapPutApi(route, endPoint, action, apiName);
-                            break;
-                        case ActionType.Delete:
-                            app.MapDeleteApi(route, endPoint, action, apiName);
-                            break;
-                        default:
-                            app.MapGetApi(route, endPoint, action, apiName);
-                            break;
-                    }
-                }
-            }
+            app.UseResponseCaching();
+            app.BuildApi();
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

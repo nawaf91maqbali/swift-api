@@ -10,7 +10,7 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Helper class for validating user authorization for API actions.
     /// </summary>
-    static class AuthHelper
+    internal static class AuthHelper
     {
         /// <summary>
         /// Validates if the user is authorized to access the specified action in the endpoint.
@@ -19,7 +19,7 @@ namespace SwiftAPI.Helpers
         /// <param name="endPoint"></param>
         /// <param name="user"></param>
         /// <exception cref="UnauthorizedAccessException"></exception>
-        public static Exception? ValidateAuthorization(this MethodInfo action, Type endPoint, ClaimsPrincipal user)
+        internal static Exception? ValidateAuthorization(this MethodInfo action, Type endPoint, ClaimsPrincipal user)
         {
             if (action.EnableAuthorization(endPoint))
             {
@@ -46,44 +46,14 @@ namespace SwiftAPI.Helpers
                         if (!passRole)
                             return new UnauthorizedAccessException($"User does not have the required role: {secureEndpoint.Role}.");
                     }
-                    if (secureEndpoint.Policy != null)
-                    {
-                        var passPolicy = false;
-                        foreach (var policy in secureEndpoint.Policy.Split(",") ?? Enumerable.Empty<string>())
-                        {
-                            if (user.HasClaim(ClaimTypes.AuthorizationDecision, policy))
-                            {
-                                passPolicy = true;
-                                break;
-                            }
-
-                        }
-                        if (!passPolicy)
-                            return new UnauthorizedAccessException($"User does not meet the required policy: {secureEndpoint.Policy}.");
-                    }
                 }
 
                 if (secureAction != null)
                 {
-                    if (secureAction?.Role != null)
-                    {
-                        var passRole = false;
-                        foreach (var role in secureAction?.Role?.Split(",") ?? Enumerable.Empty<string>())
-                        {
-                            if (user.IsInRole(role))
-                            {
-                                passRole = true;
-                                break;
-                            }
-
-                        }
-                        if (!passRole)
-                            return new UnauthorizedAccessException($"User does not have the required role: {secureAction?.Role}.");
-                    }
-                    if (secureAction?.Policy != null)
+                    if (secureAction.Policy != null)
                     {
                         var passPolicy = false;
-                        foreach (var policy in secureAction?.Policy.Split(",") ?? Enumerable.Empty<string>())
+                        foreach (var policy in secureAction.Policy.Split(",") ?? Enumerable.Empty<string>())
                         {
                             if (user.HasClaim(ClaimTypes.AuthorizationDecision, policy))
                             {
@@ -93,7 +63,7 @@ namespace SwiftAPI.Helpers
 
                         }
                         if (!passPolicy)
-                            return new UnauthorizedAccessException($"User does not meet the required policy: {secureAction?.Policy}.");
+                            return new UnauthorizedAccessException($"User does not meet the required policy: {secureAction.Policy}.");
                     }
                 }
             }
@@ -106,7 +76,7 @@ namespace SwiftAPI.Helpers
         /// <param name="action"></param>
         /// <param name="endPoint"></param>
         /// <returns></returns>
-        public static bool EnableAuthorization(this MethodInfo action, Type endPoint)
+        internal static bool EnableAuthorization(this MethodInfo action, Type endPoint)
         {
             var openAction = action.GetCustomAttribute<OpenActionAttribute>() ?? endPoint.GetCustomAttribute<OpenActionAttribute>();
             if (openAction != null && openAction.OpenToPublic)
@@ -124,7 +94,7 @@ namespace SwiftAPI.Helpers
         /// </summary>
         /// <param name="options"></param>
         /// <param name="opt"></param>
-        public static void AddAuthSchema(this SwaggerGenOptions options, SwiftApiOptions? opt)
+        internal static void AddAuthSchema(this SwaggerGenOptions options, SwiftApiOptions? opt)
         {
             if (opt == null)
                 return;
@@ -172,7 +142,7 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Auth method filter to apply auth on each method required authorization 
     /// </summary>
-    public class AuthOperationFilter : IOperationFilter
+    internal class AuthOperationFilter : IOperationFilter
     {
         private readonly string? _schemeName;
         private readonly HashSet<MethodInfo> _securedMethods;
@@ -192,13 +162,24 @@ namespace SwiftAPI.Helpers
 
             // Load only secured interface methods (those marked with SecureEndpointAttribute)
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            _securedMethods = assemblies
+            var interfaceMethods = assemblies
                 .SelectMany(a => a.GetTypes())
-                .Where(t => t.IsInterface && t.GetCustomAttribute<SecureEndpointAttribute>() != null)
-                .SelectMany(intf =>
-                    intf.GetMethods()
-                        .Where(m => m.EnableAuthorization(intf)))
+                .Where(t => t.IsInterface && t.GetCustomAttribute<EndPointAttribute>() != null)
+                .SelectMany(intf =>intf.GetMethods().Where(m => m.EnableAuthorization(intf)))
                 .ToHashSet(); // so we can compare MethodInfo easily
+
+            _securedMethods = interfaceMethods;
+
+            var models = assemblies.SelectMany(a => a.GetTypes())
+                .Where(t => t.IsClass && t.GetCustomAttribute<ModelEndPointAttribute>() != null).ToList();
+
+            models.ForEach(m =>
+            {
+                var modelMethods = m.GetCustomAttribute<ModelEndPointAttribute>()?.Interface?.GetMethods()
+                .Where(method => method.EnableAuthorization(m)).ToHashSet();
+                if (modelMethods != null)
+                    _securedMethods.UnionWith(modelMethods);
+            });
         }
 
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
@@ -208,7 +189,7 @@ namespace SwiftAPI.Helpers
 
             // Get the original interface MethodInfo (if available)
             var interfaceMethod = context.ApiDescription.ActionDescriptor
-                .EndpointMetadata?.OfType<EndpointMethodMetadata>()
+                .EndpointMetadata?.OfType<MethodMetadata>()
                 .FirstOrDefault()?.Method;
 
             if (interfaceMethod == null || !_securedMethods.Contains(interfaceMethod))
