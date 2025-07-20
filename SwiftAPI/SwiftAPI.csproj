@@ -17,10 +17,14 @@
     <Description>SwiftApi: Turn service interfaces into fully functional API endpoints without writing controllers.</Description>
     <PackageTags>dotnet;api;minimal;controllerless;swagger;webapi;aspnetcore</PackageTags>
     <RepositoryUrl>https://github.com/nawaf91maqbali/swift-api.git</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
   <ItemGroup>
