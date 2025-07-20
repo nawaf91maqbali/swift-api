@@ -6,14 +6,14 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Helper class for resolving query parameters in OpenAPI operations.
     /// </summary>
-    static class QueryHelper
+    internal static class QueryHelper
     {
         /// <summary>
         /// Resolves query parameters for an OpenAPI operation based on the parameter information.
         /// </summary>
         /// <param name="p"></param>
         /// <param name="o"></param>
-        public static void ResolveQueryParams(this ParameterInfo p, OpenApiOperation o)
+        internal static void ResolveQueryParams(this ParameterInfo p, OpenApiOperation o)
         {
             if (p.ParameterType.GetOpenApiType() == "object")
             {

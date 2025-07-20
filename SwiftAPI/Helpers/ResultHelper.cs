@@ -7,7 +7,7 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Helper class for writing results to HTTP responses in a consistent JSON format.
     /// </summary>
-    static class ResultHelper
+    internal static class ResultHelper
     {
         /// <summary>
         /// Writes the result to the HTTP response as JSON, handling both synchronous and asynchronous results.
@@ -15,7 +15,7 @@ namespace SwiftAPI.Helpers
         /// <param name="res"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static async Task WriteAsync(this HttpResponse res, object? result)
+        internal static async Task WriteAsync(this HttpResponse res, object? result)
         {
             res.ContentType = "application/json";
 

@@ -9,14 +9,14 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Helper class for generating OpenAPI schemas from .NET types.
     /// </summary>
-    static class SchemaHelper
+    internal static class SchemaHelper
     {
         /// <summary>
         /// Generates an OpenAPI schema for a given .NET type.
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static OpenApiSchema GenerateOpenApiSchema(this Type type)
+        internal static OpenApiSchema GenerateOpenApiSchema(this Type type)
         {
             if (Nullable.GetUnderlyingType(type) is Type underlyingNullable)
                 type = underlyingNullable;
@@ -57,7 +57,7 @@ namespace SwiftAPI.Helpers
         /// </summary>
         /// <param name="operation"></param>
         /// <param name="method"></param>
-        public static void GenerateOpenApiReturnSchema(this OpenApiOperation operation, MethodInfo method)
+        internal static void GenerateOpenApiReturnSchema(this OpenApiOperation operation, MethodInfo method)
         {
             operation.Responses.Clear();
 
@@ -93,7 +93,7 @@ namespace SwiftAPI.Helpers
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static string GetOpenApiType(this Type type)
+        internal static string GetOpenApiType(this Type type)
         {
             if (type == typeof(string) || type == typeof(char))
                 return "string";
@@ -128,7 +128,7 @@ namespace SwiftAPI.Helpers
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public static (string type, string? format) GetOpenApiTypeAndFormat(this Type type)
+        internal static (string type, string? format) GetOpenApiTypeAndFormat(this Type type)
         {
             if (Nullable.GetUnderlyingType(type) is Type underlying)
                 return GetOpenApiTypeAndFormat(underlying);
@@ -164,7 +164,7 @@ namespace SwiftAPI.Helpers
         /// </summary>
         /// <param name="method"></param>
         /// <returns></returns>
-        public static Type GetReturnType(this MethodInfo method)
+        internal static Type GetReturnType(this MethodInfo method, Type? concreteGenericType = null)
         {
             var returnType = method.ReturnType;
 
@@ -174,6 +174,9 @@ namespace SwiftAPI.Helpers
             if (returnType.IsGenericType && returnType.GetGenericTypeDefinition() == typeof(ActionResult<>))
                 returnType = returnType.GetGenericArguments()[0];
 
+            if (returnType.IsGenericParameter && concreteGenericType != null)
+                returnType = concreteGenericType;
+
             return returnType;
         }
 
@@ -181,16 +184,21 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Document filter for registering schema models in Swagger documentation.
     /// </summary>
-    public class SchemaModelRegistrationFilter : IDocumentFilter
+    internal class SchemaModelRegistrationFilter : IDocumentFilter
     {
         private readonly List<Type> _modelTypes;
         public SchemaModelRegistrationFilter()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             _modelTypes = assemblies
-                .SelectMany(a => a.GetTypes())
-                .Where(t => t.IsClass && !t.IsAbstract && t.GetCustomAttribute<SchemaModelAttribute>() != null)
-                .ToList();
+    .SelectMany(a => a.GetTypes())
+    .Where(t =>
+        t.IsClass &&
+        !t.IsAbstract &&
+        !t.ContainsGenericParameters && // excludes open generic types like `class MyType<T>`
+        (t.GetCustomAttribute<SchemaModelAttribute>() != null ||
+         t.GetCustomAttribute<ModelEndPointAttribute>() != null))
+    .ToList();
         }
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {

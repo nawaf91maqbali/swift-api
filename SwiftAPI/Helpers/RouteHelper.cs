@@ -6,7 +6,7 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Helper class for building route strings based on method parameters.
     /// </summary>
-    static class RouteHelper
+    internal static class RouteHelper
     {
         /// <summary>
         /// Builds a route string by appending route parameters from method parameters.
@@ -14,7 +14,7 @@ namespace SwiftAPI.Helpers
         /// <param name="route"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        public static string BuildRoute(this string route, List<ParameterInfo> parameters)
+        internal static string BuildRoute(this string route, List<ParameterInfo> parameters)
         {
             foreach (var p in parameters)
             {

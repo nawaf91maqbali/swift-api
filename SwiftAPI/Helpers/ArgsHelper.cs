@@ -7,7 +7,7 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Helper class for resolving method arguments from HTTP requests.
     /// </summary>
-    static class ArgsHelper
+    internal static class ArgsHelper
     {
         /// <summary>
         /// Resolves method parameters from the HTTP request's query string, route values, or body.
@@ -15,7 +15,7 @@ namespace SwiftAPI.Helpers
         /// <param name="req"></param>
         /// <param name="method"></param>
         /// <returns></returns>
-        public static async Task<object[]> ResolveArgsAsync(this HttpRequest req, MethodInfo method)
+        internal static async Task<object[]> ResolveArgsAsync(this HttpRequest req, MethodInfo method)
         {
             var parameters = method.GetParameters();
             var args = new object[parameters.Length];

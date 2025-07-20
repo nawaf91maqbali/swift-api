@@ -8,7 +8,7 @@ namespace SwiftAPI.Helpers
     /// <summary>
     /// Handles the resolution of method parameters from HTTP requests.
     /// </summary>
-    static class ArgsHandler
+    internal static class ArgsHandler
     {
         /// <summary>
         /// Resolves method parameters from the HTTP request's query string or route values.
@@ -16,7 +16,7 @@ namespace SwiftAPI.Helpers
         /// <param name="p"></param>
         /// <param name="req"></param>
         /// <returns></returns>
-        public static object ResolveFromQueryOrRoute(this ParameterInfo p, HttpRequest req)
+        internal static object ResolveFromQueryOrRoute(this ParameterInfo p, HttpRequest req)
         {
             if (SchemaHelper.GetOpenApiType(p.ParameterType) == "object")
             {
@@ -65,7 +65,7 @@ namespace SwiftAPI.Helpers
         /// <param name="param"></param>
         /// <param name="req"></param>
         /// <returns></returns>
-        public static async Task<object> ResolveFromBodyAsync(this ParameterInfo param, HttpRequest req)
+        internal static async Task<object> ResolveFromBodyAsync(this ParameterInfo param, HttpRequest req)
         {
             req.EnableBuffering(); // Allows multiple reads of the stream
             try
