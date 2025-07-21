@@ -11,7 +11,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>SwiftApi</PackageId>
-    <Version>8.0.1</Version>
+    <Version>8.0.3</Version>
     <Authors>Nawaf AL-Maqbali</Authors>
     <Company>Rihal</Company>
     <Description>SwiftApi: Turn service interfaces into fully functional API endpoints without writing controllers.</Description>

@@ -28,7 +28,7 @@ namespace SwiftAPI.Helpers
                 var @interface = endPoint;
                 if(!endPoint.IsInterface)
                     @interface = endPoint.GetCustomAttribute<ModelEndPointAttribute>()?.Interface ?? endPoint;
-                var actions = @interface.GetMethods();
+                var actions = @interface.GetAllMethods();
 
                 foreach (var action in actions)
                 {
