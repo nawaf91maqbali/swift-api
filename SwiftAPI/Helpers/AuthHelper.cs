@@ -175,7 +175,7 @@ namespace SwiftAPI.Helpers
 
             models.ForEach(m =>
             {
-                var modelMethods = m.GetCustomAttribute<ModelEndPointAttribute>()?.Interface?.GetMethods()
+                var modelMethods = m.GetCustomAttribute<ModelEndPointAttribute>()?.Interface?.GetAllMethods()
                 .Where(method => method.EnableAuthorization(m)).ToHashSet();
                 if (modelMethods != null)
                     _securedMethods.UnionWith(modelMethods);
