@@ -213,6 +213,12 @@ To see your auto-generated, interactive documentation.
 
 ---
 
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
 ## 🙋‍♂️ Author
 
 **Nawaf AL-Maqbali**  
