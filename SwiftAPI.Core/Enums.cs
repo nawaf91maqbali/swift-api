@@ -1,4 +1,10 @@
-﻿namespace SwiftAPI.Shared
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SwiftAPI.Core
 {
     public enum ActionType
     {
@@ -8,7 +14,8 @@
         Delete,
         Patch,
         Options,
-        Head
+        Head,
+        None
     }
 
     public enum RegisterType

@@ -1,4 +1,10 @@
-﻿namespace SwiftAPI.Shared
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SwiftAPI.Core
 {
     [AttributeUsage(AttributeTargets.Interface)]
     public class EndPointAttribute : Attribute
@@ -58,8 +64,9 @@
     {
         public bool EnableCache { get; }
         public int CacheDuration { get; }
-        public GetActionAttribute(string name = null, bool enableCache = false, int cacheDuration = 1) 
-            : base(name, ActionType.Get) {
+        public GetActionAttribute(string name = null, bool enableCache = false, int cacheDuration = 1)
+            : base(name, ActionType.Get)
+        {
             EnableCache = enableCache;
             CacheDuration = cacheDuration;
         }

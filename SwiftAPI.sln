@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75 d17.13
+VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwiftAPI", "SwiftAPI\SwiftAPI.csproj", "{521B5D50-CD81-42F1-84FE-86010C03A623}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SwiftAPI.Core", "SwiftAPI.Core\SwiftAPI.Core.csproj", "{EAD606C4-3459-42D5-927C-B75F25904A4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{521B5D50-CD81-42F1-84FE-86010C03A623}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{521B5D50-CD81-42F1-84FE-86010C03A623}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{521B5D50-CD81-42F1-84FE-86010C03A623}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EAD606C4-3459-42D5-927C-B75F25904A4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EAD606C4-3459-42D5-927C-B75F25904A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EAD606C4-3459-42D5-927C-B75F25904A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EAD606C4-3459-42D5-927C-B75F25904A4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
