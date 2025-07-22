@@ -60,26 +60,72 @@ namespace SwiftAPI.Helpers
             }
         }
         /// <summary>
-        /// Resolves method parameters from the HTTP request body.
+        /// Resolves method parameters from the HTTP request body, including files.
         /// </summary>
         /// <param name="param"></param>
         /// <param name="req"></param>
         /// <returns></returns>
         internal static async Task<object> ResolveFromBodyAsync(this ParameterInfo param, HttpRequest req)
         {
-            req.EnableBuffering(); // Allows multiple reads of the stream
+            req.EnableBuffering();
+
             try
             {
-                var result = await JsonSerializer.DeserializeAsync(
-                    req.Body,
-                    param.ParameterType,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                req.Body.Position = 0; // Reset for potential future reads
-                return result;
+                if (req.HasFormContentType)
+                {
+                    await req.ReadFormAsync(); // ensures Form is populated
+
+                    // Handle single file
+                    if (param.ParameterType == typeof(IFormFile))
+                        return req.Form.Files.FirstOrDefault();
+
+                    // Handle array of files
+                    if (param.ParameterType == typeof(IFormFile[]))
+                        return req.Form.Files.ToArray();
+
+                    // Handle complex model from form fields (e.g., string name + IFormFile file)
+                    var instance = Activator.CreateInstance(param.ParameterType);
+                    var properties = param.ParameterType.GetProperties();
+
+                    foreach (var prop in properties)
+                    {
+                        if (typeof(IFormFile).IsAssignableFrom(prop.PropertyType))
+                        {
+                            var file = req.Form.Files.GetFile(prop.Name);
+                            if (file != null)
+                                prop.SetValue(instance, file);
+                        }
+                        else if (typeof(IFormFile[]).IsAssignableFrom(prop.PropertyType))
+                        {
+                            var files = req.Form.Files.GetFiles(prop.Name).ToArray();
+                            if (files.Any())
+                                prop.SetValue(instance, files);
+                        }
+                        else if (req.Form.TryGetValue(prop.Name, out var value))
+                        {
+                            var converted = ConvertTo(prop.PropertyType, value.ToString());
+                            prop.SetValue(instance, converted);
+                        }
+                    }
+
+                    return instance;
+                }
+                else
+                {
+                    // Fallback to JSON deserialization
+                    var result = await JsonSerializer.DeserializeAsync(
+                        req.Body,
+                        param.ParameterType,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                    );
+                    req.Body.Position = 0;
+                    return result;
+                }
             }
-            catch (JsonException)
+            catch (Exception)
             {
-                return null; // or throw specific exception
+                req.Body.Position = 0;
+                return null;
             }
         }
         /// <summary>

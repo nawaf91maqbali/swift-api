@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using SwiftAPI.Core;
@@ -22,8 +23,24 @@ namespace SwiftAPI.Helpers
             if (Nullable.GetUnderlyingType(type) is Type underlyingNullable)
                 type = underlyingNullable;
 
-            var (openApiType, format) = type.GetOpenApiTypeAndFormat();
+            if (type == typeof(IFormFile) || type == typeof(IFormFile[]) || type == typeof(IFormFileCollection))
+            {
+                return new OpenApiSchema
+                {
+                    Type = "object",
+                    Properties = new Dictionary<string, OpenApiSchema>
+                    {
+                        [type.Name ?? "file"] = new OpenApiSchema
+                        {
+                            Type = "string",
+                            Format = "binary"
+                        }
+                    },
+                    Required = new HashSet<string> { type.Name ?? "file" }
+                };
+            }
 
+            var (openApiType, format) = type.GetOpenApiTypeAndFormat();
             var schema = new OpenApiSchema
             {
                 Type = openApiType,
@@ -145,6 +162,12 @@ namespace SwiftAPI.Helpers
             if (type == typeof(float)) return ("number", "float");
             if (type == typeof(double) || type == typeof(decimal)) return ("number", "double");
 
+            if (type == typeof(IFormFile) || type == typeof(IFormFile[]) || type == typeof(IFormFileCollection))
+                return ("string", "binary");
+
+            if (type.IsArray && type.GetElementType() == typeof(IFormFile))
+                return ("array", null);
+
             if (type.IsArray) return ("array", null);
 
             if (type.IsGenericType)
@@ -188,19 +211,14 @@ namespace SwiftAPI.Helpers
     internal class SchemaModelRegistrationFilter : IDocumentFilter
     {
         private readonly List<Type> _modelTypes;
-        public SchemaModelRegistrationFilter()
-        {
+        public SchemaModelRegistrationFilter(){
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            _modelTypes = assemblies
-    .SelectMany(a => a.GetTypes())
-    .Where(t =>
-        t.IsClass &&
-        !t.IsAbstract &&
-        !t.ContainsGenericParameters && // excludes open generic types like `class MyType<T>`
-        (t.GetCustomAttribute<SchemaModelAttribute>() != null ||
-         t.GetCustomAttribute<ModelEndPointAttribute>() != null))
-    .ToList();
-        }
+            _modelTypes = assemblies.SelectMany(a => a.GetTypes()).Where(t =>
+            t.IsClass &&!t.IsAbstract 
+            && !t.ContainsGenericParameters 
+            && (t.GetCustomAttribute<SchemaModelAttribute>() != null 
+            || t.GetCustomAttribute<ModelEndPointAttribute>() != null))
+                .ToList();}
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
             foreach (var model in _modelTypes)

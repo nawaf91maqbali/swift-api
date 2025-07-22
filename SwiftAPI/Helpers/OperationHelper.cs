@@ -46,11 +46,12 @@ namespace SwiftAPI.Helpers
                         });
                         break;
                     case ParamType.FromBody:
+                        var contentType = method.GetCustomAttribute<PostActionAttribute>()?.ContentType ?? "application/json";
                         o.RequestBody = new OpenApiRequestBody
                         {
                             Content = new Dictionary<string, OpenApiMediaType>
                             {
-                                ["application/json"] = new OpenApiMediaType
+                                [contentType] = new OpenApiMediaType
                                 {
                                     Schema = p.ParameterType.GenerateOpenApiSchema()
                                 }

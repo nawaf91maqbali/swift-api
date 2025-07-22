@@ -75,7 +75,10 @@ namespace SwiftAPI.Core
     [AttributeUsage(AttributeTargets.Method)]
     public class PostActionAttribute : ActionAttribute
     {
-        public PostActionAttribute(string name = null) : base(name, ActionType.Post) { }
+        public string ContentType { get; }
+        public PostActionAttribute(string name = null, string contentType = "application-json") : base(name, ActionType.Post) { 
+            ContentType = contentType;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
