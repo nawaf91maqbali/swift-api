@@ -45,9 +45,5 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## 🙋‍♂️ Author
 
-Developed by Nawaf AL-Maqbali – [GitHub](https://github.com/nawaf91maqbali)  
-Company: Rihal
-
-## 🔗 Repository
-
-[https://github.com/nawaf91maqbali/swift-api](https://github.com/nawaf91maqbali/swift-api)
+**Nawaf AL-Maqbali**  
+📧 [LinkedIn](https://www.linkedin.com/in/nawaf-al-maqbali-6bb4a6227)
