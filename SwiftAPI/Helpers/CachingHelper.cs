@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Net.Http.Headers;
+using SwiftAPI.Core;
 using SwiftAPI.Shared;
 using System.Reflection;
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using SwiftAPI.Core;
 using SwiftAPI.Shared;
 using System.Reflection;
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using SwiftAPI.Core;
 using SwiftAPI.Shared;
 using System.Reflection;
 
@@ -33,13 +34,16 @@ namespace SwiftAPI.Helpers
                 foreach (var action in actions)
                 {
                     var actionName = action.GetCustomAttribute<ActionAttribute>()?.Name ?? action.Name.ToSwiftApiName();
-                    var actionType = action.GetCustomAttribute<ActionAttribute>()?.Action ?? ActionType.Get;
+                    var actionType = action.GetCustomAttribute<ActionAttribute>()?.Action ?? ActionType.None;
 
                     var route = $"api/{apiName}/{actionName}";
                     route = route.BuildRoute(action.GetParameters().ToList());
 
                     switch (actionType)
                     {
+                        case ActionType.Get:
+                            app.MapGetApi(route, endPoint, action, apiName);
+                            break;
                         case ActionType.Post:
                             app.MapPostApi(route, endPoint, action, apiName);
                             break;
@@ -50,7 +54,7 @@ namespace SwiftAPI.Helpers
                             app.MapDeleteApi(route, endPoint, action, apiName);
                             break;
                         default:
-                            app.MapGetApi(route, endPoint, action, apiName);
+                            // ignore unsupported action types
                             break;
                     }
                 }

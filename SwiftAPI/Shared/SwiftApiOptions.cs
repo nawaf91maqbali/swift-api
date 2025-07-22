@@ -1,4 +1,6 @@
-﻿namespace SwiftAPI.Shared
+﻿using SwiftAPI.Core;
+
+namespace SwiftAPI.Shared
 {
     /// <summary>
     /// Options class for configuring SwiftAPI behavior, such as authentication scheme and API key name.
