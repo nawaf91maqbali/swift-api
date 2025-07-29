@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using SwiftAPI.Shared;
 using System.Reflection;
 
@@ -23,7 +24,6 @@ namespace SwiftAPI.Helpers
             var enableAuth = action.EnableAuthorization(endPoint);
             var api = app.MapGet(route, async (HttpRequest req, HttpResponse res) =>
             {
-                action.EnableCaching(res);
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
                 if (authEx != null)
                 {
@@ -53,6 +53,8 @@ namespace SwiftAPI.Helpers
 
             if (enableAuth)
                 api.RequireAuthorization();
+
+            api.EnableCaching(action);
         }
         /// <summary>
         /// Maps a POST API endpoint to the specified route with the provided action method.
