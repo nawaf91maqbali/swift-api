@@ -21,13 +21,12 @@ namespace SwiftAPI.Helpers
 
                 foreach (var prop in properties)
                 {
-                    var schema = SchemaHelper.GenerateOpenApiSchema(prop.PropertyType);
                     o.Parameters.Add(new OpenApiParameter
                     {
                         Name = prop.Name,
                         In = ParameterLocation.Query,
                         Required = !IsNullable(prop.PropertyType),
-                        Schema = p.ParameterType.GenerateOpenApiSchema()
+                        Schema = prop.PropertyType.GenerateOpenApiSchema()
                     });
                 }
             }

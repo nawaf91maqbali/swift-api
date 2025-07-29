@@ -18,9 +18,9 @@ namespace SwiftAPI
         /// <param name="services"></param>
         public static void AddSwiftAPI(this IServiceCollection services, Action<SwiftApiOptions>? configureOptions = null)
         {
-            services.AddResponseCaching();
             services.ServiceRegistration();
             services.AddEndpointsApiExplorer();
+            services.AddOutputCache();
 
             services.AddSwaggerGen(options =>
             {
@@ -40,7 +40,7 @@ namespace SwiftAPI
         /// <param name="app"></param>
         public static void MapSwiftAPI(this WebApplication app)
         {
-            app.UseResponseCaching();
+            app.UseOutputCache();
             app.BuildApi();
             if (app.Environment.IsDevelopment())
             {
