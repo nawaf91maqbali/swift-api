@@ -18,8 +18,9 @@ namespace SwiftAPI.Helpers
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal static OpenApiSchema GenerateOpenApiSchema(this Type type)
+        internal static OpenApiSchema GenerateOpenApiSchema(this Type type, HashSet<Type>? visitedTypes = null)
         {
+            visitedTypes ??= new HashSet<Type>();
             if (Nullable.GetUnderlyingType(type) is Type underlyingNullable)
                 type = underlyingNullable;
 
@@ -59,13 +60,16 @@ namespace SwiftAPI.Helpers
             }
             else if (openApiType == "object" && type.IsClass && type != typeof(string))
             {
-                schema.Properties = new Dictionary<string, OpenApiSchema>();
+                if (visitedTypes.Contains(type))
+                    return schema; // Avoid circular references
 
+                schema.Properties = new Dictionary<string, OpenApiSchema>();
                 var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                    
+                visitedTypes.Add(type);
+                
                 foreach (var prop in properties)
-                {
-                    schema.Properties[prop.Name] = prop.PropertyType.GenerateOpenApiSchema();
-                }
+                    schema.Properties[prop.Name] = prop.PropertyType.GenerateOpenApiSchema(visitedTypes);
             }
 
             return schema;
