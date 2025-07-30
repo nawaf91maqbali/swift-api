@@ -25,10 +25,13 @@ namespace SwiftAPI.Helpers
 
             foreach (var endPoint in endPoints)
             {
-                var apiName = endPoint.GetCustomAttribute<EndPointAttribute>()?.Name ?? endPoint.Name.ToSwiftApiName();
+                var apiName = endPoint.GetCustomAttribute<EndPointAttribute>()?.Name ??
+                    endPoint.GetCustomAttribute<ModelEndPointAttribute>()?.Name ?? endPoint.Name.ToSwiftApiName();
+
                 var @interface = endPoint;
-                if(!endPoint.IsInterface)
+                if (!endPoint.IsInterface)
                     @interface = endPoint.GetCustomAttribute<ModelEndPointAttribute>()?.Interface ?? endPoint;
+
                 var actions = @interface.GetAllMethods();
 
                 foreach (var action in actions)

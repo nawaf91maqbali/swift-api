@@ -45,13 +45,17 @@ namespace SwiftAPI.Helpers
             {
                 if (req.RouteValues.TryGetValue(p.Name!, out var routeVal))
                 {
+#pragma warning disable CS8603 // Possible null reference return.
                     return ConvertTo(p.ParameterType, routeVal);
+#pragma warning restore CS8603 // Possible null reference return.
                 }
                 else
                 {
                     var queryVal = req.Query[p.Name!].FirstOrDefault();
                     if (queryVal != null)
+#pragma warning disable CS8603 // Possible null reference return.
                         return ConvertTo(p.ParameterType, queryVal);
+#pragma warning restore CS8603 // Possible null reference return.
 
                     return p.ParameterType.IsValueType
                         ? Activator.CreateInstance(p.ParameterType)!
@@ -77,7 +81,9 @@ namespace SwiftAPI.Helpers
 
                     // Handle single file
                     if (param.ParameterType == typeof(IFormFile))
+#pragma warning disable CS8603 // Possible null reference return.
                         return req.Form.Files.FirstOrDefault();
+#pragma warning restore CS8603 // Possible null reference return.
 
                     // Handle array of files
                     if (param.ParameterType == typeof(IFormFile[]))
@@ -108,7 +114,9 @@ namespace SwiftAPI.Helpers
                         }
                     }
 
+#pragma warning disable CS8603 // Possible null reference return.
                     return instance;
+#pragma warning restore CS8603 // Possible null reference return.
                 }
                 else
                 {
@@ -119,13 +127,17 @@ namespace SwiftAPI.Helpers
                         new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
                     );
                     req.Body.Position = 0;
+#pragma warning disable CS8603 // Possible null reference return.
                     return result;
+#pragma warning restore CS8603 // Possible null reference return.
                 }
             }
             catch (Exception)
             {
                 req.Body.Position = 0;
+#pragma warning disable CS8603 // Possible null reference return.
                 return null;
+#pragma warning restore CS8603 // Possible null reference return.
             }
         }
         /// <summary>
