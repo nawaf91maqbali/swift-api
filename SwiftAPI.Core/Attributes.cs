@@ -50,9 +50,9 @@ namespace SwiftAPI.Core
     [AttributeUsage(AttributeTargets.Method)]
     public class ActionAttribute : Attribute
     {
-        public string Name { get; }
+        public string? Name { get; }
         public ActionType Action { get; }
-        public ActionAttribute(string name = null, ActionType action = ActionType.Get)
+        public ActionAttribute(string? name = null, ActionType action = ActionType.Get)
         {
             Name = name;
             Action = action;
@@ -64,7 +64,7 @@ namespace SwiftAPI.Core
     {
         public bool EnableCache { get; }
         public int CacheDuration { get; }
-        public GetActionAttribute(string name = null, bool enableCache = false, int cacheDuration = 1)
+        public GetActionAttribute(string? name = null, bool enableCache = false, int cacheDuration = 1)
             : base(name, ActionType.Get)
         {
             EnableCache = enableCache;
@@ -76,7 +76,7 @@ namespace SwiftAPI.Core
     public class PostActionAttribute : ActionAttribute
     {
         public string ContentType { get; }
-        public PostActionAttribute(string name = null, string contentType = "application-json") : base(name, ActionType.Post) { 
+        public PostActionAttribute(string? name = null, string contentType = "application-json") : base(name, ActionType.Post) { 
             ContentType = contentType;
         }
     }
@@ -84,13 +84,13 @@ namespace SwiftAPI.Core
     [AttributeUsage(AttributeTargets.Method)]
     public class PutActionAttribute : ActionAttribute
     {
-        public PutActionAttribute(string name = null) : base(name, ActionType.Put) { }
+        public PutActionAttribute(string? name = null) : base(name, ActionType.Put) { }
     }
 
     [AttributeUsage(AttributeTargets.Method)]
     public class DeleteActionAttribute : ActionAttribute
     {
-        public DeleteActionAttribute(string name = null) : base(name, ActionType.Delete) { }
+        public DeleteActionAttribute(string? name = null) : base(name, ActionType.Delete) { }
     }
     #endregion
 
