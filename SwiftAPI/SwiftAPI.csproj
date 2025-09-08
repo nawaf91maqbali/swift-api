@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 
     <!-- Compiler Settings -->
@@ -11,7 +11,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>SwiftApi</PackageId>
-    <Version>8.0.6</Version>
+    <Version>9.0.0</Version>
     <Authors>Nawaf AL-Maqbali</Authors>
     <Company>Rihal</Company>
     <Description>SwiftApi: Turn service interfaces into fully functional API endpoints without writing controllers.</Description>
@@ -24,12 +24,12 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <None Include="..\docs\LICENSE" Pack="true" PackagePath="\" />
-    <None Include="..\docs\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\docs\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.18" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>
