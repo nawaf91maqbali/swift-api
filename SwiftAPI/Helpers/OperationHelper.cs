@@ -1,6 +1,5 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi;
 using SwiftAPI.Core;
-using SwiftAPI.Shared;
 using System.Reflection;
 
 namespace SwiftAPI.Helpers
@@ -20,7 +19,7 @@ namespace SwiftAPI.Helpers
         internal static OpenApiOperation ResolveOperations(this OpenApiOperation o, string tagName, MethodInfo method)
         {
             o.OperationId = $"{tagName}_{method.Name}".ToLower();
-            o.Tags = new List<OpenApiTag> { new OpenApiTag { Name = tagName.ToUpper() } };
+            o.Tags = new HashSet<OpenApiTagReference> { new OpenApiTagReference(tagName.ToUpper()) };
             var parameters = method.GetParameters();
             foreach (var p in parameters)
             {
@@ -28,7 +27,7 @@ namespace SwiftAPI.Helpers
                 switch (location)
                 {
                     case ParamType.FromRoute:
-                        o.Parameters.Add(new OpenApiParameter
+                        o.Parameters!.Add(new OpenApiParameter
                         {
                             Name = p.Name!,
                             In = ParameterLocation.Path,
@@ -37,7 +36,7 @@ namespace SwiftAPI.Helpers
                         });
                         break;
                     case ParamType.FromHeader:
-                        o.Parameters.Add(new OpenApiParameter
+                        o.Parameters!.Add(new OpenApiParameter
                         {
                             Name = p.Name!,
                             In = ParameterLocation.Header,

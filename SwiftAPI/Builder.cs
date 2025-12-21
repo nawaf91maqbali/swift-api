@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SwiftAPI.Helpers;
 using SwiftAPI.Shared;
-using System.Reflection;
 
 namespace SwiftAPI
 {
@@ -21,6 +20,8 @@ namespace SwiftAPI
             services.ServiceRegistration();
             services.AddEndpointsApiExplorer();
             services.AddOutputCache();
+
+
 
             services.AddSwaggerGen(options =>
             {
@@ -42,6 +43,7 @@ namespace SwiftAPI
         {
             app.UseOutputCache();
             app.BuildApi();
+
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();

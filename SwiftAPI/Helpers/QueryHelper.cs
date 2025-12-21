@@ -1,4 +1,4 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi;
 using System.Reflection;
 
 namespace SwiftAPI.Helpers
@@ -21,7 +21,7 @@ namespace SwiftAPI.Helpers
 
                 foreach (var prop in properties)
                 {
-                    o.Parameters.Add(new OpenApiParameter
+                    o.Parameters!.Add(new OpenApiParameter
                     {
                         Name = prop.Name,
                         In = ParameterLocation.Query,
@@ -32,7 +32,7 @@ namespace SwiftAPI.Helpers
             }
             else
             {
-                o.Parameters.Add(new OpenApiParameter
+                o.Parameters!.Add(new OpenApiParameter
                 {
                     Name = p.Name!,
                     In = ParameterLocation.Query,
