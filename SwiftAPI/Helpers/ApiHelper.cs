@@ -22,6 +22,7 @@ namespace SwiftAPI.Helpers
         internal static void MapGetApi(this WebApplication app, string route, Type endPoint, MethodInfo action, string apiName)
         {
             var enableAuth = action.EnableAuthorization(endPoint);
+#pragma warning disable ASPDEPR002 // Type or member is obsolete
             var api = app.MapGet(route, async (HttpRequest req, HttpResponse res) =>
             {
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
@@ -50,6 +51,7 @@ namespace SwiftAPI.Helpers
             }).WithOpenApi(o => o.ResolveOperations(apiName, action))
             .WithMetadata(new MethodMetadata(action))
             .Produces(StatusCodes.Status200OK, action.GetReturnType(endPoint));
+#pragma warning restore ASPDEPR002 // Type or member is obsolete
 
             if (enableAuth)
                 api.RequireAuthorization();
@@ -67,6 +69,7 @@ namespace SwiftAPI.Helpers
         internal static void MapPostApi(this WebApplication app, string route, Type endPoint, MethodInfo action, string apiName)
         {
             var enableAuth = action.EnableAuthorization(endPoint);
+#pragma warning disable ASPDEPR002 // Type or member is obsolete
             var api = app.MapPost(route, async (HttpRequest req, HttpResponse res) =>
             {
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
@@ -99,6 +102,7 @@ namespace SwiftAPI.Helpers
             }).WithOpenApi(o => o.ResolveOperations(apiName, action))
             .WithMetadata(new MethodMetadata(action))
             .Produces(StatusCodes.Status200OK, action.GetReturnType(endPoint));
+#pragma warning restore ASPDEPR002 // Type or member is obsolete
 
             if (enableAuth)
                 api.RequireAuthorization();
@@ -114,6 +118,7 @@ namespace SwiftAPI.Helpers
         internal static void MapPutApi(this WebApplication app, string route, Type endPoint, MethodInfo action, string apiName)
         {
             var enableAuth = action.EnableAuthorization(endPoint);
+#pragma warning disable ASPDEPR002 // Type or member is obsolete
             var api = app.MapPut(route, async (HttpRequest req, HttpResponse res) =>
             {
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
@@ -146,6 +151,7 @@ namespace SwiftAPI.Helpers
             }).WithOpenApi(o => o.ResolveOperations(apiName, action))
             .WithMetadata(new MethodMetadata(action))
             .Produces(StatusCodes.Status200OK, action.GetReturnType(endPoint));
+#pragma warning restore ASPDEPR002 // Type or member is obsolete
 
             if (enableAuth)
                 api.RequireAuthorization();
@@ -161,6 +167,7 @@ namespace SwiftAPI.Helpers
         internal static void MapDeleteApi(this WebApplication app, string route, Type endPoint, MethodInfo action, string apiName)
         {
             var enableAuth = action.EnableAuthorization(endPoint);
+#pragma warning disable ASPDEPR002 // Type or member is obsolete
             var api = app.MapDelete(route, async (HttpRequest req, HttpResponse res) =>
             {
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
@@ -193,6 +200,7 @@ namespace SwiftAPI.Helpers
             }).WithOpenApi(o => o.ResolveOperations(apiName, action))
             .WithMetadata(new MethodMetadata(action))
             .Produces(StatusCodes.Status200OK, action.GetReturnType(endPoint));
+#pragma warning restore ASPDEPR002 // Type or member is obsolete
 
             if (enableAuth)
                 api.RequireAuthorization();

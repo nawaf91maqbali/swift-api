@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using SwiftAPI.Core;
 using SwiftAPI.Shared;
@@ -28,12 +28,13 @@ namespace SwiftAPI.Helpers
             {
                 return new OpenApiSchema
                 {
-                    Type = "object",
-                    Properties = new Dictionary<string, OpenApiSchema>
+                    Type = JsonSchemaType.Object,
+
+                    Properties = new Dictionary<string, IOpenApiSchema>
                     {
                         [type.Name ?? "file"] = new OpenApiSchema
                         {
-                            Type = "string",
+                            Type = JsonSchemaType.String,
                             Format = "binary"
                         }
                     },
@@ -48,7 +49,7 @@ namespace SwiftAPI.Helpers
                 Format = format
             };
 
-            if (openApiType == "array")
+            if (openApiType == JsonSchemaType.Array)
             {
                 Type? elementType = type.IsArray
                     ? type.GetElementType()
@@ -56,14 +57,14 @@ namespace SwiftAPI.Helpers
 
                 schema.Items = elementType != null
                     ? elementType.GenerateOpenApiSchema()
-                    : new OpenApiSchema { Type = "object" };
+                    : new OpenApiSchema { Type = JsonSchemaType.Object };
             }
-            else if (openApiType == "object" && type.IsClass && type != typeof(string))
+            else if (openApiType == JsonSchemaType.Object && type.IsClass && type != typeof(string))
             {
                 if (visitedTypes.Contains(type))
                     return schema; // Avoid circular references
 
-                schema.Properties = new Dictionary<string, OpenApiSchema>();
+                schema.Properties = new Dictionary<string, IOpenApiSchema>();
                 var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
                     
                 visitedTypes.Add(type);
@@ -81,7 +82,7 @@ namespace SwiftAPI.Helpers
         /// <param name="method"></param>
         internal static void GenerateOpenApiReturnSchema(this OpenApiOperation operation, MethodInfo method)
         {
-            operation.Responses.Clear();
+            operation.Responses!.Clear();
 
             var returnType = method.ReturnType;
 
@@ -150,29 +151,29 @@ namespace SwiftAPI.Helpers
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        internal static (string type, string? format) GetOpenApiTypeAndFormat(this Type type)
+        internal static (JsonSchemaType type, string? format) GetOpenApiTypeAndFormat(this Type type)
         {
             if (Nullable.GetUnderlyingType(type) is Type underlying)
                 return GetOpenApiTypeAndFormat(underlying);
 
-            if (type == typeof(string)) return ("string", null);
-            if (type == typeof(Guid)) return ("string", "uuid");
-            if (type == typeof(DateTime) || type == typeof(DateTimeOffset)) return ("string", "date-time");
+            if (type == typeof(string)) return (JsonSchemaType.String, null);
+            if (type == typeof(Guid)) return (JsonSchemaType.String, "uuid");
+            if (type == typeof(DateTime) || type == typeof(DateTimeOffset)) return (JsonSchemaType.String, "date-time");
 
-            if (type == typeof(bool)) return ("boolean", null);
-            if (type == typeof(int) || type == typeof(short) || type == typeof(byte)) return ("integer", "int32");
-            if (type == typeof(long) || type == typeof(ulong)) return ("integer", "int64");
+            if (type == typeof(bool)) return (JsonSchemaType.Boolean, null);
+            if (type == typeof(int) || type == typeof(short) || type == typeof(byte)) return (JsonSchemaType.Integer, "int32");
+            if (type == typeof(long) || type == typeof(ulong)) return (JsonSchemaType.Integer, "int64");
 
-            if (type == typeof(float)) return ("number", "float");
-            if (type == typeof(double) || type == typeof(decimal)) return ("number", "double");
+            if (type == typeof(float)) return (JsonSchemaType.Number, "float");
+            if (type == typeof(double) || type == typeof(decimal)) return (JsonSchemaType.Number, "double");
 
             if (type == typeof(IFormFile) || type == typeof(IFormFile[]) || type == typeof(IFormFileCollection))
-                return ("string", "binary");
+                return (JsonSchemaType.String, "binary");
 
             if (type.IsArray && type.GetElementType() == typeof(IFormFile))
-                return ("array", null);
+                return (JsonSchemaType.Array, null);
 
-            if (type.IsArray) return ("array", null);
+            if (type.IsArray) return (JsonSchemaType.Array, null);
 
             if (type.IsGenericType)
             {
@@ -181,12 +182,49 @@ namespace SwiftAPI.Helpers
                     || genericDef == typeof(ICollection<>) || genericDef == typeof(IReadOnlyList<>)
                     || genericDef == typeof(IReadOnlyCollection<>))
                 {
-                    return ("array", null);
+                    return (JsonSchemaType.Array, null);
                 }
             }
 
-            return ("object", null);
+            return (JsonSchemaType.Object, null);
         }
+        //internal static (string type, string? format) GetOpenApiTypeAndFormat2(this Type type)
+        //{
+        //    if (Nullable.GetUnderlyingType(type) is Type underlying)
+        //        return GetOpenApiTypeAndFormat(underlying);
+
+        //    if (type == typeof(string)) return ("string", null);
+        //    if (type == typeof(Guid)) return ("string", "uuid");
+        //    if (type == typeof(DateTime) || type == typeof(DateTimeOffset)) return ("string", "date-time");
+
+        //    if (type == typeof(bool)) return ("boolean", null);
+        //    if (type == typeof(int) || type == typeof(short) || type == typeof(byte)) return ("integer", "int32");
+        //    if (type == typeof(long) || type == typeof(ulong)) return ("integer", "int64");
+
+        //    if (type == typeof(float)) return ("number", "float");
+        //    if (type == typeof(double) || type == typeof(decimal)) return ("number", "double");
+
+        //    if (type == typeof(IFormFile) || type == typeof(IFormFile[]) || type == typeof(IFormFileCollection))
+        //        return ("string", "binary");
+
+        //    if (type.IsArray && type.GetElementType() == typeof(IFormFile))
+        //        return ("array", null);
+
+        //    if (type.IsArray) return ("array", null);
+
+        //    if (type.IsGenericType)
+        //    {
+        //        var genericDef = type.GetGenericTypeDefinition();
+        //        if (genericDef == typeof(List<>) || genericDef == typeof(IEnumerable<>)
+        //            || genericDef == typeof(ICollection<>) || genericDef == typeof(IReadOnlyList<>)
+        //            || genericDef == typeof(IReadOnlyCollection<>))
+        //        {
+        //            return ("array", null);
+        //        }
+        //    }
+
+        //    return ("object", null);
+        //}
         /// <summary>
         /// Gets the return type of a method, handling Task and ActionResult types.
         /// </summary>

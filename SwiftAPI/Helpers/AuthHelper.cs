@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using SwiftAPI.Core;
 using SwiftAPI.Shared;
@@ -119,7 +119,7 @@ namespace SwiftAPI.Helpers
                     {
                         Name = "Authorization",
                         Type = SecuritySchemeType.Http,
-                        Scheme = "basic",
+                        Scheme = "Basic",
                         In = ParameterLocation.Header,
                         Description = "Basic Auth. Format: **Basic &lt;base64(username:password)&gt;**"
                     });
@@ -166,7 +166,7 @@ namespace SwiftAPI.Helpers
             var interfaceMethods = assemblies
                 .SelectMany(a => a.GetTypes())
                 .Where(t => t.IsInterface && t.GetCustomAttribute<EndPointAttribute>() != null)
-                .SelectMany(intf =>intf.GetMethods().Where(m => m.EnableAuthorization(intf)))
+                .SelectMany(intf => intf.GetMethods().Where(m => m.EnableAuthorization(intf)))
                 .ToHashSet(); // so we can compare MethodInfo easily
 
             _securedMethods = interfaceMethods;
@@ -187,26 +187,29 @@ namespace SwiftAPI.Helpers
         {
             if (_schemeName == null)
                 return;
-
             // Get the original interface MethodInfo (if available)
             var interfaceMethod = context.ApiDescription.ActionDescriptor
                 .EndpointMetadata?.OfType<MethodMetadata>()
                 .FirstOrDefault()?.Method;
 
+            operation.Security = new List<OpenApiSecurityRequirement>();
             if (interfaceMethod == null || !_securedMethods.Contains(interfaceMethod))
                 return;
 
-            operation.Security ??= new List<OpenApiSecurityRequirement>();
-            operation.Security.Add(new OpenApiSecurityRequirement 
+
+            var document = context.Document;
+
+            operation.Security = new List<OpenApiSecurityRequirement>
             {
+                new OpenApiSecurityRequirement
                 {
-                    new OpenApiSecurityScheme{
-                        Reference = new OpenApiReference{
-                            Type = ReferenceType.SecurityScheme,Id = _schemeName
-                        }
-                    }, Array.Empty<string>()
+
+                    {
+                        new OpenApiSecuritySchemeReference(_schemeName, document, null),
+                        new List<string>()
+                    }
                 }
-            });
+            };
         }
     }
 }

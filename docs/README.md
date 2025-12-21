@@ -27,8 +27,8 @@
 - 🧱 **Model-Based API Generation**  
   Automatically generate basic CRUD endpoints directly from model classes.
 
-- 🎯 **.NET 8+ Compatible**  
-  Built on the latest .NET standards with full support for .NET 8 and future versions.
+- 🎯 **.NET 10 Compatible**  
+  Built on the latest .NET standards with full support for .NET 10 and future versions.
 
 ---
 
