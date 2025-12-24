@@ -32,6 +32,7 @@ namespace SwiftAPI
 
                 options.AddAuthSchema(config);
                 options.OperationFilter<AuthOperationFilter>(config);
+                options.OperationFilter<SchemaOprationFilter>();
 
             });
         }

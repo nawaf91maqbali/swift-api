@@ -9,6 +9,36 @@ using System.Reflection;
 namespace SwiftAPI.Helpers
 {
     /// <summary>
+    /// This helpe registered schemas for the oprations
+    /// </summary>
+    internal class SchemaOprationFilter : IOperationFilter
+    {
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
+        {
+
+            // Get the original interface MethodInfo (if available)
+            var interfaceMethod = context.ApiDescription.ActionDescriptor
+                .EndpointMetadata?.OfType<MethodMetadata>()
+                .FirstOrDefault()?.Method;
+
+            if (interfaceMethod == null) return;
+
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+            var endPoint = (AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+                .Where(t => (t.IsInterface || t.IsClass) && (t.GetCustomAttributes<EndPointAttribute>().Any()
+                || t.GetCustomAttributes<ModelEndPointAttribute>().Any())))
+                .FirstOrDefault(x => x.GetAllMethods().Any(m => m == interfaceMethod));
+
+            if (endPoint == null) return;
+
+            var apiName = endPoint.GetCustomAttribute<EndPointAttribute>()?.Name ??
+                endPoint.GetCustomAttribute<ModelEndPointAttribute>()?.Name ?? endPoint.Name.ToSwiftApiName();
+
+            operation = operation.ResolveOperations(apiName, interfaceMethod);
+        }
+    }
+    /// <summary>
     /// Helper class for generating OpenAPI schemas from .NET types.
     /// </summary>
     internal static class SchemaHelper
@@ -188,49 +218,12 @@ namespace SwiftAPI.Helpers
 
             return (JsonSchemaType.Object, null);
         }
-        //internal static (string type, string? format) GetOpenApiTypeAndFormat2(this Type type)
-        //{
-        //    if (Nullable.GetUnderlyingType(type) is Type underlying)
-        //        return GetOpenApiTypeAndFormat(underlying);
-
-        //    if (type == typeof(string)) return ("string", null);
-        //    if (type == typeof(Guid)) return ("string", "uuid");
-        //    if (type == typeof(DateTime) || type == typeof(DateTimeOffset)) return ("string", "date-time");
-
-        //    if (type == typeof(bool)) return ("boolean", null);
-        //    if (type == typeof(int) || type == typeof(short) || type == typeof(byte)) return ("integer", "int32");
-        //    if (type == typeof(long) || type == typeof(ulong)) return ("integer", "int64");
-
-        //    if (type == typeof(float)) return ("number", "float");
-        //    if (type == typeof(double) || type == typeof(decimal)) return ("number", "double");
-
-        //    if (type == typeof(IFormFile) || type == typeof(IFormFile[]) || type == typeof(IFormFileCollection))
-        //        return ("string", "binary");
-
-        //    if (type.IsArray && type.GetElementType() == typeof(IFormFile))
-        //        return ("array", null);
-
-        //    if (type.IsArray) return ("array", null);
-
-        //    if (type.IsGenericType)
-        //    {
-        //        var genericDef = type.GetGenericTypeDefinition();
-        //        if (genericDef == typeof(List<>) || genericDef == typeof(IEnumerable<>)
-        //            || genericDef == typeof(ICollection<>) || genericDef == typeof(IReadOnlyList<>)
-        //            || genericDef == typeof(IReadOnlyCollection<>))
-        //        {
-        //            return ("array", null);
-        //        }
-        //    }
-
-        //    return ("object", null);
-        //}
         /// <summary>
         /// Gets the return type of a method, handling Task and ActionResult types.
         /// </summary>
         /// <param name="method"></param>
         /// <returns></returns>
-        internal static Type GetReturnType(this MethodInfo method, Type? concreteGenericType = null)
+        internal static Type? GetReturnType(this MethodInfo method, Type? concreteGenericType = null)
         {
             var returnType = method.ReturnType;
 
@@ -242,6 +235,9 @@ namespace SwiftAPI.Helpers
 
             if (returnType.IsGenericParameter && concreteGenericType != null)
                 returnType = concreteGenericType;
+
+            if (returnType == typeof(void) || returnType == typeof(Task))
+                return null;
 
             return returnType;
         }
