@@ -38,6 +38,15 @@ namespace SwiftAPI.Core
         None,
         Basic,
         Bearer,
-        ApiKey
+        ApiKey,
+        OAuth2,
+        OpenIdConnect
+    }
+
+    public enum OAuth2Flow
+    {
+        Password,
+        AuthorizationCode,
+        ClientCredentials
     }
 }

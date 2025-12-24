@@ -129,14 +129,77 @@ namespace SwiftAPI.Helpers
                     options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
                     {
                         Name = opt.ApiKeyName,
+                        Scheme = "ApiKey",
                         Type = SecuritySchemeType.ApiKey,
                         In = ParameterLocation.Header,
                         Description = $"API Key passed in `{opt.ApiKeyName}` header"
                     });
                     break;
-
+                case AuthScheme.OAuth2:
+                    ArgumentNullException.ThrowIfNull(opt.OAuth2Options);
+                    options.AddSecurityDefinition("OAuth2", new OpenApiSecurityScheme
+                    {
+                        Name = "OAuth2",
+                        Scheme = "OAuth2",
+                        Type = SecuritySchemeType.OAuth2,
+                        Description = "OAuth2 Authorization Code flow",
+                        Flows = GetOpenApiOAuthFlow(opt.OAuth2Options)
+                    });
+                    break;
+                case AuthScheme.OpenIdConnect:
+                    ArgumentNullException.ThrowIfNull(opt.OpenIdConnectOptions);
+                    options.AddSecurityDefinition("OpenIdConnect", new OpenApiSecurityScheme
+                    {
+                        Name = "OpenIdConnect",
+                        Scheme = "OpenIdConnect",
+                        Type = SecuritySchemeType.OpenIdConnect,
+                        Description = "OpenID Connect authentication",
+                        OpenIdConnectUrl = new Uri(opt.OpenIdConnectOptions.OpenIdConnectConfigUrl)
+                    });
+                    break;
                 case AuthScheme.None:
                     return; // no auth
+            }
+        }
+        /// <summary>
+        /// Get Type of flow for OAuth2
+        /// </summary>
+        /// <param name="oAuth2Options"></param>
+        /// <returns></returns>
+        private static OpenApiOAuthFlows GetOpenApiOAuthFlow(OAuth2Options oAuth2Options)
+        {
+            switch (oAuth2Options.OAuth2Flow)
+            {
+                case OAuth2Flow.Password:
+                    return new OpenApiOAuthFlows
+                    {
+                        Password = new()
+                        {
+                            AuthorizationUrl = new Uri(oAuth2Options.OAuth2AuthUrl),
+                            TokenUrl = new Uri(oAuth2Options.OAuth2TokenUrl),
+                            Scopes = oAuth2Options.OAuth2Scopes
+                        }
+                    };
+                case OAuth2Flow.ClientCredentials:
+                    return new OpenApiOAuthFlows
+                    {
+                        ClientCredentials = new()
+                        {
+                            AuthorizationUrl = new Uri(oAuth2Options.OAuth2AuthUrl),
+                            TokenUrl = new Uri(oAuth2Options.OAuth2TokenUrl),
+                            Scopes = oAuth2Options.OAuth2Scopes
+                        }
+                    };
+                default:
+                    return new OpenApiOAuthFlows
+                    {
+                        AuthorizationCode = new()
+                        {
+                            AuthorizationUrl = new Uri(oAuth2Options.OAuth2AuthUrl),
+                            TokenUrl = new Uri(oAuth2Options.OAuth2TokenUrl),
+                            Scopes = oAuth2Options.OAuth2Scopes
+                        }
+                    };
             }
         }
     }
@@ -146,6 +209,8 @@ namespace SwiftAPI.Helpers
     internal class AuthOperationFilter : IOperationFilter
     {
         private readonly string? _schemeName;
+        private readonly AuthScheme _authScheme;
+        private readonly List<string> _scopes = new List<string>();
         private readonly HashSet<MethodInfo> _securedMethods;
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthOperationFilter"/> class.
@@ -153,14 +218,26 @@ namespace SwiftAPI.Helpers
         /// <param name="options"></param>
         public AuthOperationFilter(SwiftApiOptions options)
         {
+            _authScheme = options.AuthScheme;
             _schemeName = options.AuthScheme switch
             {
                 AuthScheme.Bearer => "Bearer",
                 AuthScheme.Basic => "Basic",
                 AuthScheme.ApiKey => "ApiKey",
+                AuthScheme.OAuth2 => "OAuth2",
+                AuthScheme.OpenIdConnect => "OpenIdConnect",
                 _ => null
             };
 
+            //Set Scopes of OAuth2
+            if (options.AuthScheme == AuthScheme.OAuth2)
+            {
+                if (options.OAuth2Options != null)
+                {
+                    if (options.OAuth2Options.OAuth2Scopes != null)
+                        _scopes = options.OAuth2Options.OAuth2Scopes.Keys.ToList();
+                }
+            }
             // Load only secured interface methods (those marked with SecureEndpointAttribute)
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             var interfaceMethods = assemblies
@@ -206,7 +283,7 @@ namespace SwiftAPI.Helpers
 
                     {
                         new OpenApiSecuritySchemeReference(_schemeName, document, null),
-                        new List<string>()
+                        _scopes
                     }
                 }
             };

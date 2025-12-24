@@ -22,7 +22,6 @@ namespace SwiftAPI.Helpers
         internal static void MapGetApi(this WebApplication app, string route, Type endPoint, MethodInfo action, string apiName)
         {
             var enableAuth = action.EnableAuthorization(endPoint);
-#pragma warning disable ASPDEPR002 // Type or member is obsolete
             var api = app.MapGet(route, async (HttpRequest req, HttpResponse res) =>
             {
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
@@ -48,11 +47,10 @@ namespace SwiftAPI.Helpers
                 {
                     scope?.Dispose();
                 }
-            }).WithOpenApi(o => o.ResolveOperations(apiName, action))
+            })
+            .WithTags(apiName.ToUpper())
             .WithMetadata(new MethodMetadata(action))
             .Produces(StatusCodes.Status200OK, action.GetReturnType(endPoint));
-#pragma warning restore ASPDEPR002 // Type or member is obsolete
-
             if (enableAuth)
                 api.RequireAuthorization();
 
@@ -69,7 +67,6 @@ namespace SwiftAPI.Helpers
         internal static void MapPostApi(this WebApplication app, string route, Type endPoint, MethodInfo action, string apiName)
         {
             var enableAuth = action.EnableAuthorization(endPoint);
-#pragma warning disable ASPDEPR002 // Type or member is obsolete
             var api = app.MapPost(route, async (HttpRequest req, HttpResponse res) =>
             {
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
@@ -83,10 +80,6 @@ namespace SwiftAPI.Helpers
                 try
                 {
                     var args = await req.ResolveArgsAsync(action);
-                    //var serviceType = service.GetType();
-                    //var runTimeAction = serviceType.GetMethod(action.Name, BindingFlags.Public | BindingFlags.Instance);
-                    //if (runTimeAction == null)
-                    //    throw new InvalidOperationException($"Method {action.Name} not found in service {serviceType.FullName}");
                     var result = action.Invoke(service, args);
                     await res.WriteAsync(result);
                 }
@@ -99,10 +92,10 @@ namespace SwiftAPI.Helpers
                 {
                     scope?.Dispose();
                 }
-            }).WithOpenApi(o => o.ResolveOperations(apiName, action))
+            })
+            .WithTags(apiName.ToUpper())
             .WithMetadata(new MethodMetadata(action))
             .Produces(StatusCodes.Status200OK, action.GetReturnType(endPoint));
-#pragma warning restore ASPDEPR002 // Type or member is obsolete
 
             if (enableAuth)
                 api.RequireAuthorization();
@@ -118,7 +111,6 @@ namespace SwiftAPI.Helpers
         internal static void MapPutApi(this WebApplication app, string route, Type endPoint, MethodInfo action, string apiName)
         {
             var enableAuth = action.EnableAuthorization(endPoint);
-#pragma warning disable ASPDEPR002 // Type or member is obsolete
             var api = app.MapPut(route, async (HttpRequest req, HttpResponse res) =>
             {
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
@@ -132,10 +124,6 @@ namespace SwiftAPI.Helpers
                 try
                 {
                     var args = await req.ResolveArgsAsync(action);
-                    //var serviceType = service.GetType();
-                    //var runTimeAction = serviceType.GetMethod(action.Name, BindingFlags.Public | BindingFlags.Instance);
-                    //if (runTimeAction == null)
-                    //    throw new InvalidOperationException($"Method {action.Name} not found in service {serviceType.FullName}");
                     var result = action.Invoke(service, args);
                     await res.WriteAsync(result);
                 }
@@ -148,10 +136,10 @@ namespace SwiftAPI.Helpers
                 {
                     scope?.Dispose();
                 }
-            }).WithOpenApi(o => o.ResolveOperations(apiName, action))
+            })
+            .WithTags(apiName.ToUpper())
             .WithMetadata(new MethodMetadata(action))
             .Produces(StatusCodes.Status200OK, action.GetReturnType(endPoint));
-#pragma warning restore ASPDEPR002 // Type or member is obsolete
 
             if (enableAuth)
                 api.RequireAuthorization();
@@ -167,7 +155,6 @@ namespace SwiftAPI.Helpers
         internal static void MapDeleteApi(this WebApplication app, string route, Type endPoint, MethodInfo action, string apiName)
         {
             var enableAuth = action.EnableAuthorization(endPoint);
-#pragma warning disable ASPDEPR002 // Type or member is obsolete
             var api = app.MapDelete(route, async (HttpRequest req, HttpResponse res) =>
             {
                 var authEx = action.ValidateAuthorization(endPoint, req.HttpContext.User);
@@ -181,10 +168,6 @@ namespace SwiftAPI.Helpers
                 try
                 {
                     var args = await req.ResolveArgsAsync(action);
-                    //var serviceType = service.GetType();
-                    //var runTimeAction = serviceType.GetMethod(action.Name, BindingFlags.Public | BindingFlags.Instance);
-                    //if (runTimeAction == null)
-                    //    throw new InvalidOperationException($"Method {action.Name} not found in service {serviceType.FullName}");
                     var result = action.Invoke(service, args);
                     await res.WriteAsync(result);
                 }
@@ -197,10 +180,10 @@ namespace SwiftAPI.Helpers
                 {
                     scope?.Dispose();
                 }
-            }).WithOpenApi(o => o.ResolveOperations(apiName, action))
+            })
+            .WithTags(apiName.ToUpper())
             .WithMetadata(new MethodMetadata(action))
             .Produces(StatusCodes.Status200OK, action.GetReturnType(endPoint));
-#pragma warning restore ASPDEPR002 // Type or member is obsolete
 
             if (enableAuth)
                 api.RequireAuthorization();
