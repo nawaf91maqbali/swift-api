@@ -70,6 +70,11 @@ public interface IUserService
 
     [DeleteAction("delete-users")]
     Task DeleteUserAsync([RouteParam] Guid id);
+
+    [PostAction(contentType: "multipart/form-data")]
+    void Upload([BodyParam] IFormFile file); //support upload with IFromFile type
+    [GetAction]
+    Stream Download(); // Support Download files with different type of return type (Stream, string path, bytes[])
 }
 ```
 
@@ -159,6 +164,10 @@ public interface IUserService
     [DeleteAction("delete-users")]
     [SecureAction(policy: "delete")] //optional: specify the policy of the action
     Task DeleteUserAsync([RouteParam] Guid id);
+    [PostAction(contentType: "multipart/form-data")]
+    void Upload([BodyParam] IFormFile file); //support upload with IFromFile type
+    [GetAction]
+    Stream Download(); // Support Download files with different type of return type (Stream, string path, bytes[])
 }
 ```
 
@@ -180,10 +189,52 @@ public class User
 Update your SwiftApi registration:
 
 ```csharp
+//Basic
 builder.Services.AddSwiftAPI(o =>
 {
-    o.AuthScheme = AuthScheme.Basic; // Options: Bearer, Basic, ApiKey
+    o.AuthScheme = AuthScheme.Basic;
 });
+
+//Bearer
+builder.Services.AddSwiftAPI(o =>
+{
+    o.AuthScheme = AuthScheme.Bearer;
+});
+
+//ApiKey
+builder.Services.AddSwiftAPI(o =>
+{
+    o.AuthScheme = AuthScheme.ApiKey;
+    o.ApiKeyName = "X-API-KEY";
+});
+
+//OAuth2
+builder.Services.AddSwiftAPI(o =>
+{
+    o.AuthScheme = AuthScheme.OAuth2;
+    o.OAuth2Options = new OAuth2Options
+    {
+        OAuth2AuthUrl = "{AuthUrl}",
+        OAuth2TokenUrl = "{TokenUrl}",
+        OAuth2Flow = OAuth2Flow.AuthorizationCode, //Support AuthorizationCode, ClientCredentials, and Password Flow
+        OAuth2Scopes = new Dictionary<string, string>
+        {
+            {"openid", "OpenID" },
+            {"profile", "Profile" }
+        }
+  };
+});
+
+//OpenIdConnect
+builder.Services.AddSwiftAPI(o =>
+{
+    o.AuthScheme = AuthScheme.OpenIdConnect;
+    o.OpenIdConnectOptions = new SwiftAPI.Shared.OpenIdConnectOptions()
+    {
+        OpenIdConnectConfigUrl = "{AuthorityUrl}/.well-known/openid-configuration"
+    };
+});
+
 ```
 
 ---
