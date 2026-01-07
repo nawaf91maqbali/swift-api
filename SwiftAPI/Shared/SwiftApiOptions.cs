@@ -1,4 +1,6 @@
-﻿using SwiftAPI.Core;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using SwiftAPI.Core;
+using SwiftAPI.Core.AuthHandlerOptions;
 
 namespace SwiftAPI.Shared
 {
@@ -7,22 +9,44 @@ namespace SwiftAPI.Shared
     /// </summary>
     public class SwiftApiOptions
     {
-        public AuthScheme AuthScheme { get; set; }
-        public string ApiKeyName { get; set; } = "X-API-KEY";
-        public OAuth2Options? OAuth2Options { get; set; } 
-        public OpenIdConnectOptions? OpenIdConnectOptions { get; set; }
-
+        public AuthScheme AuthScheme { get; internal set; }
+        public Action<BasicAuthOption>? BasicAuthOption { get; internal set; }
+        public Action<ApiKeyAuthOption>? ApiKeyAuthOption { get; internal set; }
+        public BearerAuthOption? BearerAuthOptions { get; internal set; }
+        public OAuth2Option? OAuth2Options { get; internal set; } 
+        public OpenIdConnectOption? OpenIdConnectOptions { get; set; }
     }
 
-    public class OAuth2Options
+    public static class SwiftApiOptionsExtensions
     {
-        public required string OAuth2AuthUrl { get; set; }
-        public required string OAuth2TokenUrl { get; set; }
-        public required OAuth2Flow OAuth2Flow { get; set; }
-        public Dictionary<string, string>? OAuth2Scopes { get; set; }
-    }
+        public static void UseBearer(this SwiftApiOptions options, Action<BearerAuthOption> bearerAuthOptions)
+        {
+            options.BearerAuthOptions = new BearerAuthOption();
+            bearerAuthOptions.Invoke(options.BearerAuthOptions);
+            options.AuthScheme = AuthScheme.Bearer;
+        }
+        public static void UseBasic(this SwiftApiOptions options, Action<BasicAuthOption> basicAuthOption)
+        {
+            options.BasicAuthOption = basicAuthOption;
+            options.AuthScheme = AuthScheme.Basic;
+        }
+        public static void UseApiKey(this SwiftApiOptions options, Action<ApiKeyAuthOption> apiKeyAuthOption)
+        {
+            options.ApiKeyAuthOption = apiKeyAuthOption;
+            options.AuthScheme = AuthScheme.ApiKey;
+        }
+        public static void UseOAuth2(this SwiftApiOptions options, Action<OAuth2Option> oAuth2Option)
+        {
+            options.OAuth2Options ??= new OAuth2Option();
+            oAuth2Option.Invoke(options.OAuth2Options);
+            options.AuthScheme = AuthScheme.OAuth2;
+        }
 
-    public class OpenIdConnectOptions { 
-        public required string OpenIdConnectConfigUrl { get; set; }
+        public static void UseOpenIdConnect(this SwiftApiOptions options, Action<OpenIdConnectOption> openIdConnectOption)
+        {
+            options.OpenIdConnectOptions ??= new OpenIdConnectOption();
+            openIdConnectOption.Invoke(options.OpenIdConnectOptions);
+            options.AuthScheme = AuthScheme.OpenIdConnect;
+        }
     }
 }

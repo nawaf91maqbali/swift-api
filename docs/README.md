@@ -190,51 +190,86 @@ Update your SwiftApi registration:
 
 ```csharp
 //Basic
-builder.Services.AddSwiftAPI(o =>
+o.UseBasic(b =>
 {
-    o.AuthScheme = AuthScheme.Basic;
-});
-
-//Bearer
-builder.Services.AddSwiftAPI(o =>
-{
-    o.AuthScheme = AuthScheme.Bearer;
-});
-
-//ApiKey
-builder.Services.AddSwiftAPI(o =>
-{
-    o.AuthScheme = AuthScheme.ApiKey;
-    o.ApiKeyName = "X-API-KEY";
-});
-
-//OAuth2
-builder.Services.AddSwiftAPI(o =>
-{
-    o.AuthScheme = AuthScheme.OAuth2;
-    o.OAuth2Options = new OAuth2Options
-    {
-        OAuth2AuthUrl = "{AuthUrl}",
-        OAuth2TokenUrl = "{TokenUrl}",
-        OAuth2Flow = OAuth2Flow.AuthorizationCode, //Support AuthorizationCode, ClientCredentials, and Password Flow
-        OAuth2Scopes = new Dictionary<string, string>
-        {
-            {"openid", "OpenID" },
-            {"profile", "Profile" }
-        }
-  };
-});
-
-//OpenIdConnect
-builder.Services.AddSwiftAPI(o =>
-{
-    o.AuthScheme = AuthScheme.OpenIdConnect;
-    o.OpenIdConnectOptions = new SwiftAPI.Shared.OpenIdConnectOptions()
-    {
-        OpenIdConnectConfigUrl = "{AuthorityUrl}/.well-known/openid-configuration"
+    b.AuthCridentionals = new List<BasicAuthCridentional>{
+        new BasicAuthCridentional(username: "admin", password: "password")
     };
 });
 
+//Bearer
+o.UseBearer(bearer =>
+{
+    bearer.JwtBearerOptions = jwt =>
+    {
+        jwt.Authority = "http://auth-server/auth/realms/master/protocol/openid-connect/token";
+        jwt.Audience = "app";
+        jwt.RequireHttpsMetadata = false;
+        jwt.TokenValidationParameters = new()
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Z9!sF2p@Q#7mV$L1C^T8WbXH6e4KJ0R*")),
+            ValidIssuer = "http://auth-server/auth/realms/master/protocol/openid-connect/token",
+            ValidAudience = "app",
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true
+        };
+    };
+});
+
+//ApiKey
+o.UseApiKey(key =>
+{
+    key.AuthCridentionals = new List<ApiKeyCridentional>
+    {
+        new ApiKeyCridentional(keyName: "Admin", keyValue: "123456")
+    };
+});
+
+//OAuth2
+o.UseOAuth2(oAuth2 =>
+{
+    oAuth2.JwtBearerOptions = jwt =>
+    {
+        jwt.Authority = "http://auth-server/auth/realms/master";
+        jwt.RequireHttpsMetadata = false;
+        jwt.TokenValidationParameters = new()
+        {
+            ValidIssuer = "http://auth-server/auth/realms/master",
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true
+        };
+    };
+    oAuth2.AuthorizationUrl = "http://auth-server/auth/realms/master/protocol/openid-connect/auth";
+    oAuth2.TokenUrl = "http://auth-server/auth/realms/master/protocol/openid-connect/token";
+});
+
+//OpenIdConnect
+o.UseOpenIdConnect(openIdConnect =>
+{
+    openIdConnect.JwtBearerOptions = jwt =>
+    {
+        jwt.Authority = "http://auth-server/auth/realms/master";
+        jwt.RequireHttpsMetadata = false;
+        jwt.TokenValidationParameters = new()
+        {
+            ValidIssuer = "http://auth-server/auth/realms/master",
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true
+        };
+    };
+    openIdConnect.OpenIdConnectConfigUrl = "http://auth-server/auth/realms/master/.well-known/openid-configuration";
+});
+
+```
+
+Update your SwiftApi mapping:
+
+```csharp
+app.MapSwiftAPI(enableAuth: true); //Add true to enable authorization
 ```
 
 ---

@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using SwiftAPI.AuthHandler;
 using SwiftAPI.Core;
+using SwiftAPI.Core.AuthHandlerOptions;
 using SwiftAPI.Shared;
 using System.Reflection;
 using System.Security.Claims;
@@ -13,6 +16,39 @@ namespace SwiftAPI.Helpers
     /// </summary>
     internal static class AuthHelper
     {
+        /// <summary>
+        /// Register Auth to the project
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="config"></param>
+        internal static void AddSwiftApiAuth(this IServiceCollection services, SwiftApiOptions config)
+        {
+            if (config.AuthScheme == AuthScheme.Basic && config.BasicAuthOption != null)
+                services.AddAuthentication(BasicAuthenticationHandler.SchemeName)
+                    .AddScheme<BasicAuthOption, BasicAuthenticationHandler>
+                    (BasicAuthenticationHandler.SchemeName, config.BasicAuthOption);
+
+            if (config.AuthScheme == AuthScheme.ApiKey && config.ApiKeyAuthOption != null)
+                services.AddAuthentication(ApiKeyAuthenticationHandler.SchemeName)
+                    .AddScheme<ApiKeyAuthOption, ApiKeyAuthenticationHandler>
+                    (ApiKeyAuthenticationHandler.SchemeName, config.ApiKeyAuthOption);
+
+            if (config.AuthScheme == AuthScheme.Bearer && config.BearerAuthOptions != null)
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(config.BearerAuthOptions.JwtBearerOptions!);
+
+
+            if (config.AuthScheme == AuthScheme.OAuth2 && config.OAuth2Options != null)
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(config.OAuth2Options.JwtBearerOptions!);
+
+            if (config.AuthScheme == AuthScheme.OpenIdConnect && config.OpenIdConnectOptions != null)
+                services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(config.OpenIdConnectOptions.JwtBearerOptions!);
+
+            if (config.AuthScheme != AuthScheme.None)
+                services.AddAuthorization();
+        }
         /// <summary>
         /// Validates if the user is authorized to access the specified action in the endpoint.
         /// </summary>
@@ -126,14 +162,26 @@ namespace SwiftAPI.Helpers
                     break;
 
                 case AuthScheme.ApiKey:
-                    options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+                    if (opt.ApiKeyAuthOption == null)
+                        return;
+
+                    var keysOptions = new ApiKeyAuthOption();
+                    opt.ApiKeyAuthOption.Invoke(keysOptions);
+
+                    if (keysOptions.AuthCridentionals == null)
+                        return;
+
+                    foreach(var key in keysOptions.AuthCridentionals)
                     {
-                        Name = opt.ApiKeyName,
-                        Scheme = "ApiKey",
-                        Type = SecuritySchemeType.ApiKey,
-                        In = ParameterLocation.Header,
-                        Description = $"API Key passed in `{opt.ApiKeyName}` header"
-                    });
+                        options.AddSecurityDefinition(key.KeyName, new OpenApiSecurityScheme
+                        {
+                            Name = key.KeyName,
+                            Scheme = ApiKeyAuthenticationHandler.SchemeName,
+                            Type = SecuritySchemeType.ApiKey,
+                            In = ParameterLocation.Header,
+                            Description = $"API Key passed in `{key.KeyName}` header"
+                        });
+                    }
                     break;
                 case AuthScheme.OAuth2:
                     ArgumentNullException.ThrowIfNull(opt.OAuth2Options);
@@ -148,6 +196,7 @@ namespace SwiftAPI.Helpers
                     break;
                 case AuthScheme.OpenIdConnect:
                     ArgumentNullException.ThrowIfNull(opt.OpenIdConnectOptions);
+                    ArgumentException.ThrowIfNullOrWhiteSpace(opt.OpenIdConnectOptions.OpenIdConnectConfigUrl);
                     options.AddSecurityDefinition("OpenIdConnect", new OpenApiSecurityScheme
                     {
                         Name = "OpenIdConnect",
@@ -166,7 +215,7 @@ namespace SwiftAPI.Helpers
         /// </summary>
         /// <param name="oAuth2Options"></param>
         /// <returns></returns>
-        private static OpenApiOAuthFlows GetOpenApiOAuthFlow(OAuth2Options oAuth2Options)
+        private static OpenApiOAuthFlows GetOpenApiOAuthFlow(OAuth2Option oAuth2Options)
         {
             switch (oAuth2Options.OAuth2Flow)
             {
@@ -175,9 +224,9 @@ namespace SwiftAPI.Helpers
                     {
                         Password = new()
                         {
-                            AuthorizationUrl = new Uri(oAuth2Options.OAuth2AuthUrl),
-                            TokenUrl = new Uri(oAuth2Options.OAuth2TokenUrl),
-                            Scopes = oAuth2Options.OAuth2Scopes
+                            AuthorizationUrl = new Uri(oAuth2Options.AuthorizationUrl),
+                            TokenUrl = new Uri(oAuth2Options.TokenUrl),
+                            Scopes = oAuth2Options.Scopes
                         }
                     };
                 case OAuth2Flow.ClientCredentials:
@@ -185,9 +234,9 @@ namespace SwiftAPI.Helpers
                     {
                         ClientCredentials = new()
                         {
-                            AuthorizationUrl = new Uri(oAuth2Options.OAuth2AuthUrl),
-                            TokenUrl = new Uri(oAuth2Options.OAuth2TokenUrl),
-                            Scopes = oAuth2Options.OAuth2Scopes
+                            AuthorizationUrl = new Uri(oAuth2Options.AuthorizationUrl),
+                            TokenUrl = new Uri(oAuth2Options.TokenUrl),
+                            Scopes = oAuth2Options.Scopes
                         }
                     };
                 default:
@@ -195,9 +244,9 @@ namespace SwiftAPI.Helpers
                     {
                         AuthorizationCode = new()
                         {
-                            AuthorizationUrl = new Uri(oAuth2Options.OAuth2AuthUrl),
-                            TokenUrl = new Uri(oAuth2Options.OAuth2TokenUrl),
-                            Scopes = oAuth2Options.OAuth2Scopes
+                            AuthorizationUrl = new Uri(oAuth2Options.AuthorizationUrl),
+                            TokenUrl = new Uri(oAuth2Options.TokenUrl),
+                            Scopes = oAuth2Options.Scopes
                         }
                     };
             }
@@ -208,8 +257,8 @@ namespace SwiftAPI.Helpers
     /// </summary>
     internal class AuthOperationFilter : IOperationFilter
     {
-        private readonly string? _schemeName;
-        private readonly AuthScheme _authScheme;
+        //private readonly string? _schemeName;
+        private readonly List<string> _schemesName = new List<string>();
         private readonly List<string> _scopes = new List<string>();
         private readonly HashSet<MethodInfo> _securedMethods;
         /// <summary>
@@ -218,8 +267,7 @@ namespace SwiftAPI.Helpers
         /// <param name="options"></param>
         public AuthOperationFilter(SwiftApiOptions options)
         {
-            _authScheme = options.AuthScheme;
-            _schemeName = options.AuthScheme switch
+            var _schemeName = options.AuthScheme switch
             {
                 AuthScheme.Bearer => "Bearer",
                 AuthScheme.Basic => "Basic",
@@ -229,13 +277,32 @@ namespace SwiftAPI.Helpers
                 _ => null
             };
 
+            //Set Schemes Names;
+            if(options.AuthScheme == AuthScheme.ApiKey)
+            {
+                if(options.ApiKeyAuthOption != null)
+                {
+                    var apiKeyOptions = new ApiKeyAuthOption();
+                    options.ApiKeyAuthOption.Invoke(apiKeyOptions);
+                    if(apiKeyOptions.AuthCridentionals != null)
+                    {
+                        foreach (var apyKeyScheme in apiKeyOptions.AuthCridentionals)
+                            _schemesName.Add(apyKeyScheme.KeyName);
+                    }
+                }
+            }
+            else
+            {
+                _schemesName.Add(_schemeName?? "None");
+            }
+
             //Set Scopes of OAuth2
             if (options.AuthScheme == AuthScheme.OAuth2)
             {
                 if (options.OAuth2Options != null)
                 {
-                    if (options.OAuth2Options.OAuth2Scopes != null)
-                        _scopes = options.OAuth2Options.OAuth2Scopes.Keys.ToList();
+                    if (options.OAuth2Options.Scopes != null)
+                        _scopes = options.OAuth2Options.Scopes.Keys.ToList();
                 }
             }
             // Load only secured interface methods (those marked with SecureEndpointAttribute)
@@ -262,7 +329,8 @@ namespace SwiftAPI.Helpers
 
         public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            if (_schemeName == null)
+            //if (_schemeName == null)
+            if (!_schemesName.Any())
                 return;
             // Get the original interface MethodInfo (if available)
             var interfaceMethod = context.ApiDescription.ActionDescriptor
@@ -275,18 +343,27 @@ namespace SwiftAPI.Helpers
 
 
             var document = context.Document;
-
-            operation.Security = new List<OpenApiSecurityRequirement>
+            foreach(var _schemeName in _schemesName)
             {
-                new OpenApiSecurityRequirement
+                operation.Security.Add(new OpenApiSecurityRequirement
                 {
-
                     {
                         new OpenApiSecuritySchemeReference(_schemeName, document, null),
                         _scopes
                     }
-                }
-            };
+                });
+            }
+            //operation.Security = new List<OpenApiSecurityRequirement>
+            //{
+            //    new OpenApiSecurityRequirement
+            //    {
+
+            //        {
+            //            new OpenApiSecuritySchemeReference(_schemeName, document, null),
+            //            _scopes
+            //        }
+            //    }
+            //};
         }
     }
 }
