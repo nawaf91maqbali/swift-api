@@ -189,79 +189,82 @@ public class User
 Update your SwiftApi registration:
 
 ```csharp
-//Basic
-o.UseBasic(b =>
+builder.Services.AddSwiftAPI(o =>
 {
-    b.AuthCridentionals = new List<BasicAuthCridentional>{
+    //Basic
+    o.UseBasic(b =>
+    {
+        b.AuthCridentionals = new List<BasicAuthCridentional>{
         new BasicAuthCridentional(username: "admin", password: "password")
     };
-});
+    });
 
-//Bearer
-o.UseBearer(bearer =>
-{
-    bearer.JwtBearerOptions = jwt =>
+    //Bearer
+    o.UseBearer(bearer =>
     {
-        jwt.Authority = "http://auth-server/auth/realms/master/protocol/openid-connect/token";
-        jwt.Audience = "app";
-        jwt.RequireHttpsMetadata = false;
-        jwt.TokenValidationParameters = new()
+        bearer.JwtBearerOptions = jwt =>
         {
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Z9!sF2p@Q#7mV$L1C^T8WbXH6e4KJ0R*")),
-            ValidIssuer = "http://auth-server/auth/realms/master/protocol/openid-connect/token",
-            ValidAudience = "app",
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true
+            jwt.Authority = "http://auth-server/auth/realms/master/protocol/openid-connect/token";
+            jwt.Audience = "app";
+            jwt.RequireHttpsMetadata = false;
+            jwt.TokenValidationParameters = new()
+            {
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Z9!sF2p@Q#7mV$L1C^T8WbXH6e4KJ0R*")),
+                ValidIssuer = "http://auth-server/auth/realms/master/protocol/openid-connect/token",
+                ValidAudience = "app",
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true
+            };
         };
-    };
-});
+    });
 
-//ApiKey
-o.UseApiKey(key =>
-{
-    key.AuthCridentionals = new List<ApiKeyCridentional>
+    //ApiKey
+    o.UseApiKey(key =>
+    {
+        key.AuthCridentionals = new List<ApiKeyCridentional>
     {
         new ApiKeyCridentional(keyName: "Admin", keyValue: "123456")
     };
-});
+    });
 
-//OAuth2
-o.UseOAuth2(oAuth2 =>
-{
-    oAuth2.JwtBearerOptions = jwt =>
+    //OAuth2
+    o.UseOAuth2(oAuth2 =>
     {
-        jwt.Authority = "http://auth-server/auth/realms/master";
-        jwt.RequireHttpsMetadata = false;
-        jwt.TokenValidationParameters = new()
+        oAuth2.JwtBearerOptions = jwt =>
         {
-            ValidIssuer = "http://auth-server/auth/realms/master",
-            ValidateIssuer = true,
-            ValidateAudience = false,
-            ValidateLifetime = true
+            jwt.Authority = "http://auth-server/auth/realms/master";
+            jwt.RequireHttpsMetadata = false;
+            jwt.TokenValidationParameters = new()
+            {
+                ValidIssuer = "http://auth-server/auth/realms/master",
+                ValidateIssuer = true,
+                ValidateAudience = false,
+                ValidateLifetime = true
+            };
         };
-    };
-    oAuth2.AuthorizationUrl = "http://auth-server/auth/realms/master/protocol/openid-connect/auth";
-    oAuth2.TokenUrl = "http://auth-server/auth/realms/master/protocol/openid-connect/token";
-});
+        oAuth2.AuthorizationUrl = "http://auth-server/auth/realms/master/protocol/openid-connect/auth";
+        oAuth2.TokenUrl = "http://auth-server/auth/realms/master/protocol/openid-connect/token";
+    });
 
-//OpenIdConnect
-o.UseOpenIdConnect(openIdConnect =>
-{
-    openIdConnect.JwtBearerOptions = jwt =>
+    //OpenIdConnect
+    o.UseOpenIdConnect(openIdConnect =>
     {
-        jwt.Authority = "http://auth-server/auth/realms/master";
-        jwt.RequireHttpsMetadata = false;
-        jwt.TokenValidationParameters = new()
+        openIdConnect.JwtBearerOptions = jwt =>
         {
-            ValidIssuer = "http://auth-server/auth/realms/master",
-            ValidateIssuer = true,
-            ValidateAudience = false,
-            ValidateLifetime = true
+            jwt.Authority = "http://auth-server/auth/realms/master";
+            jwt.RequireHttpsMetadata = false;
+            jwt.TokenValidationParameters = new()
+            {
+                ValidIssuer = "http://auth-server/auth/realms/master",
+                ValidateIssuer = true,
+                ValidateAudience = false,
+                ValidateLifetime = true
+            };
         };
-    };
-    openIdConnect.OpenIdConnectConfigUrl = "http://auth-server/auth/realms/master/.well-known/openid-configuration";
+        openIdConnect.OpenIdConnectConfigUrl = "http://auth-server/auth/realms/master/.well-known/openid-configuration";
+    });
 });
 
 ```
