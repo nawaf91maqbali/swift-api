@@ -11,7 +11,7 @@
 
     <!-- NuGet Package Metadata -->
     <PackageId>SwiftApi.Core</PackageId>
-    <Version>10.0.1</Version>
+    <Version>10.0.2</Version>
     <Authors>Nawaf AL-Maqbali</Authors>
     <Company>Rihal</Company>
     <Description>SwiftApi.Core: is a lightweight and extensible core component library designed to power the SwiftAPI ecosystem. It provides shared types and utility classes to support dynamic API generation in .NET applications.</Description>
@@ -23,7 +23,12 @@
 
   <ItemGroup>
     <None Include="..\docs\LICENSE" Pack="true" PackagePath="\" />
-    <None Include="..\docs\core\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\docs\core\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
   </ItemGroup>
 
 </Project>
